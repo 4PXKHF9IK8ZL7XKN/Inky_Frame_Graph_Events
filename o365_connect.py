@@ -318,10 +318,7 @@ def sort_and_filter_events(events, time_frame):
     for ev in events:
         if ev['start_zeit'][:-8] == today_filter:
             events_tmp.append(ev)
-    
-    if len(events_tmp) == 0:
-        sleep = True
-           
+               
     for index, ev in enumerate(events_tmp):
         start_zeit_epoch = epoch_from_iso8601short(ev['start_zeit'])
         end_zeit_epoch = epoch_from_iso8601short(ev['end_zeit'])
@@ -336,6 +333,9 @@ def sort_and_filter_events(events, time_frame):
             # Event End Passed
             if end_zeit_epoch < time.time():
                 current_meeting = None
+    
+    if current_meeting == None and next_meeting == None:
+        sleep = True
     
     return sleep, current_meeting, next_meeting
 

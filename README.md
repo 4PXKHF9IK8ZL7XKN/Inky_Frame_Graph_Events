@@ -6,3 +6,5 @@ https://shop.pimoroni.com/products/inky-frame-7-3?variant=40541882056787
 https://github.com/pimoroni/inky-frame
 
 furth is the project connecting to Microsoft Graph API to read calender events of resources , like meeting roomes.
+
+https://learn.microsoft.com/en-us/graph/api/calendar-list-events?view=graph-rest-1.0&tabs=http

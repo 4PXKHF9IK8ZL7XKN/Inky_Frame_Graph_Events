@@ -361,8 +361,8 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
     graphics.rectangle(0, 0, WIDTH, 100)
     graphics.set_pen(1)
     title = SIGN_TITLE
-    title_len = graphics.measure_text(title, 4) // 2
-    graphics.text(title, (WIDTH // 2 - title_len), 10, WIDTH, 4)
+    title_len = graphics.measure_text(title, 4) // 5
+    graphics.text(title, (WIDTH // 2 - title_len), 25, WIDTH, 1.5)   
     
     graphics.set_pen(1)
     
@@ -376,19 +376,17 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
         minutes = f"0{ret_time[5]}" 
     
     date_time = f"{ret_time[2]}.{ret_time[1]}.{ret_time[0]} - {day_light_houre}:{minutes}"
-    graphics.text(date_time, int(WIDTH*0.4) , HEIGHT - (380 + y_offset), 600, 2)
+    graphics.text(date_time, int(WIDTH*0.35) , HEIGHT - (380 + y_offset), 600, 0.75)
 
 
     graphics.set_pen(3)
     graphics.rectangle(30, HEIGHT - (300 + y_offset), WIDTH - 250, 200)
     graphics.set_pen(1)
-    graphics.text("Aktuelles Meeting:", 35, HEIGHT - (280 + y_offset), 600, 2)
+    graphics.text("Aktuelles Meeting:", 35, HEIGHT - (280 + y_offset), 600, 0.75)
     if current_meeting_fill == None:
-        graphics.text("Kein Meeting", 35, HEIGHT - (240 + y_offset), 600, 6)
-        time_range_string = ""
-        graphics.text(time_range_string , 35, HEIGHT - (180 + y_offset), 600, 2)        
+        graphics.text("Kein Meeting", 35, HEIGHT - (230 + y_offset), 600, 2.5)  
     else:
-        graphics.text(current_meeting_fill["subject"], 35, HEIGHT - (240 + y_offset), 600, 6)
+        graphics.text(current_meeting_fill["subject"], 35, HEIGHT - (230 + y_offset), 600, 2.5)
         
         daylight_saving_hour = int(current_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
         daylight_saving_minutes = current_meeting_fill["start_zeit"][14:][:-3]
@@ -397,7 +395,7 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
         daylight_saving_minutes_end = current_meeting_fill["end_zeit"][14:][:-3]
                 
         time_range_string = f' {daylight_saving_hour}:{daylight_saving_minutes} - {daylight_saving_hour_end}:{daylight_saving_minutes_end}'
-        graphics.text(time_range_string , 35, HEIGHT - (180 + y_offset), 600, 2)
+        graphics.text(time_range_string , 35, HEIGHT - (180 + y_offset), 600, 0.75)
 
 
     graphics.set_pen(0)
@@ -405,7 +403,7 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
     graphics.set_pen(1)
     if next_meeting_fill == None:
         folgende_string = ""
-        graphics.text(folgende_string, 35, HEIGHT - (85 + y_offset), 600, 2)        
+        graphics.text(folgende_string, 35, HEIGHT - (75 + y_offset), 600, 0.5)        
     else:
         daylight_saving_hour = int(next_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
         daylight_saving_minutes = next_meeting_fill["start_zeit"][14:][:-3]
@@ -414,7 +412,7 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
         daylight_saving_minutes_end = next_meeting_fill["end_zeit"][14:][:-3]
                 
         folgende_string = f'Folgendes: {next_meeting_fill["subject"]} --- {daylight_saving_hour}:{daylight_saving_minutes} - {daylight_saving_hour_end}:{daylight_saving_minutes_end}'
-        graphics.text(folgende_string, 35, HEIGHT - (85 + y_offset), 600, 2)
+        graphics.text(folgende_string, 35, HEIGHT - (75 + y_offset), 600, 0.5)
     
     graphics.update()
     
@@ -440,15 +438,15 @@ def draw_frame_error():
     graphics.rectangle(0, 0, WIDTH, 100)
     graphics.set_pen(1)
     title = SIGN_TITLE
-    title_len = graphics.measure_text(title, 4) // 2
-    graphics.text(title, (WIDTH // 2 - title_len), 10, WIDTH, 4)   
+    title_len = graphics.measure_text(title, 4) // 5
+    graphics.text(title, (WIDTH // 2 - title_len), 25, WIDTH, 1.5)   
     graphics.set_pen(1)
 
     graphics.set_pen(6)
     graphics.rectangle(30, HEIGHT - (300 + y_offset), WIDTH - 60, 200)
     graphics.set_pen(1)
 
-    graphics.text("Verbindungsfehler", 65, HEIGHT - (240 + y_offset), 600, 6)
+    graphics.text("Verbindungsfehler", 65, HEIGHT - (240 + y_offset), 600, 2)
 
     graphics.update()
       

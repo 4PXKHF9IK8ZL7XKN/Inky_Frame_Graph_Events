@@ -57,7 +57,6 @@ file = ih.file_exists("state.json")
 
 while True:
     global token_data
-    global sleep_mode_toggle
     ih.led_warn.on()
     
     ret_time_bool, ret_time = ih.app.time_update()

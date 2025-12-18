@@ -6,6 +6,8 @@ from machine import reset
 
 import inky_helper as ih
 
+sleep_mode_toggle = False
+
 # Uncomment the line for your Inky Frame display size
 # from picographics import PicoGraphics, DISPLAY_INKY_FRAME_4 as DISPLAY  # 4.0"
 # from picographics import PicoGraphics, DISPLAY_INKY_FRAME as DISPLAY      # 5.7"
@@ -64,10 +66,13 @@ while True:
         ret_value_group, events = ih.app.get_group_events(token_data['access_token'])
         gc.collect()
         if ret_value_group != False:
-            current_meeting, next_meeting = ih.app.sort_and_filter_events(events, ret_time)
-            ih.app.draw_frame(ret_time,current_meeting,next_meeting)
+            sleep_mode, current_meeting, next_meeting = ih.app.sort_and_filter_events(events, ret_time)
+            if sleep_mode_toggle == False:
+                ih.app.draw_frame(ret_time,current_meeting,next_meeting)
+            sleep_mode_toggle = sleep_mode
     else:
         ih.app.draw_frame_error()
 
     ih.led_warn.off()
     ih.sleep(ih.app.UPDATE_INTERVAL)
+

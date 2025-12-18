@@ -27,7 +27,7 @@ SCOPE = "https://graph.microsoft.com/.default"
 API_URL = ""
 
 try:
-    from secrets import API_MANDANT, API_SECRET, API_CLIENT, API_ROOM, SIGN_TITLE, DAY_LIGHT_DAVING
+    from secrets import API_MANDANT, API_SECRET, API_CLIENT, API_ROOM, SIGN_TITLE, DAY_LIGHT_SAVING
 except ImportError:
     print("Create secrets.py with your O365 credentials")
 
@@ -362,7 +362,7 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
     
     graphics.set_pen(1)
     
-    day_light_houre = ret_time[4] + DAY_LIGHT_DAVING
+    day_light_houre = ret_time[4] + DAY_LIGHT_SAVING
     
     if day_light_houre < 10:
         day_light_houre = f"0{day_light_houre}"
@@ -386,10 +386,10 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
     else:
         graphics.text(current_meeting_fill["subject"], 35, HEIGHT - (240 + y_offset), 600, 6)
         
-        daylight_saving_hour = int(current_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_DAVING
+        daylight_saving_hour = int(current_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
         daylight_saving_minutes = current_meeting_fill["start_zeit"][14:][:-3]
         
-        daylight_saving_hour_end = int(current_meeting_fill["end_zeit"][11:][:-6]) + DAY_LIGHT_DAVING
+        daylight_saving_hour_end = int(current_meeting_fill["end_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
         daylight_saving_minutes_end = current_meeting_fill["end_zeit"][14:][:-3]
                 
         time_range_string = f' {daylight_saving_hour}:{daylight_saving_minutes} - {daylight_saving_hour_end}:{daylight_saving_minutes_end}'
@@ -403,10 +403,10 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
         folgende_string = ""
         graphics.text(folgende_string, 35, HEIGHT - (85 + y_offset), 600, 2)        
     else:
-        daylight_saving_hour = int(next_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_DAVING
+        daylight_saving_hour = int(next_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
         daylight_saving_minutes = next_meeting_fill["start_zeit"][14:][:-3]
         
-        daylight_saving_hour_end = int(next_meeting_fill["end_zeit"][11:][:-6]) + DAY_LIGHT_DAVING
+        daylight_saving_hour_end = int(next_meeting_fill["end_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
         daylight_saving_minutes_end = next_meeting_fill["end_zeit"][14:][:-3]
                 
         folgende_string = f'Folgendes: {next_meeting_fill["subject"]} --- {daylight_saving_hour}:{daylight_saving_minutes} - {daylight_saving_hour_end}:{daylight_saving_minutes_end}'

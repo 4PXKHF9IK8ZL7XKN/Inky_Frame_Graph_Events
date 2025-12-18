@@ -298,6 +298,7 @@ def sort_and_filter_events(events, time_frame):
     events_tmp = []
     current_meeting = None
     next_meeting = None
+    sleep = False
 
     today_filter = f'{time_frame[0]}-{time_frame[1]}-{time_frame[2]}T'
     
@@ -317,6 +318,9 @@ def sort_and_filter_events(events, time_frame):
     for ev in events:
         if ev['start_zeit'][:-8] == today_filter:
             events_tmp.append(ev)
+    
+    if len(events_tmp) == 0:
+        sleep = True
            
     for index, ev in enumerate(events_tmp):
         start_zeit_epoch = epoch_from_iso8601short(ev['start_zeit'])
@@ -333,7 +337,7 @@ def sort_and_filter_events(events, time_frame):
             if end_zeit_epoch < time.time():
                 current_meeting = None
     
-    return current_meeting, next_meeting
+    return sleep, current_meeting, next_meeting
 
 def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
     gc.collect()

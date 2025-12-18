@@ -25,7 +25,8 @@ time.sleep(0.5)
 # Setup for the display.
 graphics = PicoGraphics(DISPLAY)
 WIDTH, HEIGHT = graphics.get_bounds()
-graphics.set_font("bitmap8")
+graphics.set_font("serif")
+graphics.set_thickness(2)
 
 # Turn any LEDs off that may still be on from last run.
 ih.clear_button_leds()

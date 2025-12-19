@@ -200,6 +200,7 @@ def epoch_from_iso8601short(epoch_obj):
     return ret_epoch
 
 def string_ast_odata_helper(string_data):
+    
     # i dont can't load ast to simple parse my string
     # level1 is in my object context as @odata.context , [list of events] , "@odata.nextLink"
     return_data_test = {"@odata.context": "" , "value": "" , "@odata.nextLink": ""}
@@ -208,17 +209,22 @@ def string_ast_odata_helper(string_data):
 
     value_tmp = ""
     calenda_data = []
-    
-    
+     
     base_struct = string_data.split(",")
-            
+                
     return_data["@odata.context"] = base_struct[0].strip('{"@odata.context":')
-    _, next_link_tmp = string_data.split('"@odata.nextLink":')
-    return_data["@odata.nextLink"] = next_link_tmp[:-3]
+
+    # try to find followup part
+    nextLink_pos = string_data.find('"@odata.nextLink":')    
+    if nextLink_pos != -1:
+        _, next_link_tmp = string_data.split('"@odata.nextLink":')
+        return_data["@odata.nextLink"] = next_link_tmp[:-3]
     
     _ , value_tmp = string_data.split('"value":')
-    value_tmp, _ = value_tmp.split("@odata.nextLink")
-    value_tmp = value_tmp[:-2]
+    
+    if nextLink_pos != -1:
+        value_tmp, _ = value_tmp.split("@odata.nextLink")
+        value_tmp = value_tmp[:-2]
     
     # value_tmp3 hold the @odata.etag dicts
     string_to_strip = value_tmp.strip("\r")
@@ -228,7 +234,7 @@ def string_ast_odata_helper(string_data):
     value_tmp = value_tmp.split(',{"@odata.etag":')
     
     # Cleanup from odata crap that send by the database
-    
+        
     for item_stripes in value_tmp:
         entry = {}
         _, start_zeit = item_stripes.split('"start":{"dateTime":"')
@@ -246,7 +252,7 @@ def string_ast_odata_helper(string_data):
             calenda_data.append(entry)
         else:
             print("Entry Validation Faild")
-            return False 
+            return False , return_data_test
      
     return_data["value"] = calenda_data           
     gc.collect()
@@ -256,9 +262,19 @@ def string_ast_odata_helper(string_data):
 
 
 # Gruppenkalender abrufen
-def get_group_events(access_token):
-    url = f"https://graph.microsoft.com/v1.0/users/{API_ROOM}/calendar/events"
-
+def get_group_events(access_token, time_frame ):
+    current_month = time_frame[1]
+    if time_frame[1] < 10:
+        current_month = f"0{time_frame[1]}"
+        
+    current_day = time_frame[2]
+    if time_frame[2] < 10:
+        current_day = f"0{time_frame[2]}"
+    
+    start_date_tmp = f"{time_frame[0]}-{current_month}-{current_day}T00:00:00Z"
+    end_date_tmp = f"{time_frame[0]}-{current_month}-{current_day}T23:59:59Z"
+    # 2025-12-19T00:00:00Z - 2025-12-19T23:59:59Z
+    url = f"https://graph.microsoft.com/v1.0/users/{API_ROOM}/calendarView?startDateTime={start_date_tmp}&endDateTime={end_date_tmp}"
     tmp_access_token = access_token.strip('"')
     headers = {
         "Authorization": f"Bearer {tmp_access_token}",
@@ -268,14 +284,16 @@ def get_group_events(access_token):
     data_dump = ""
     try:
         print("Rufe Gruppenkalender ab...")
-        meta, data = http_get_buffered(url, headers , buffer_size=512)       
+        meta, data = http_get_buffered(url, headers , buffer_size=512)
         gc.collect()
         
         print(meta[0])
+
         if meta[0] == 'HTTP/1.1 200 OK':
             print("Response received ({} bytes)".format(len(data)))
                                     
             ret_value , events = string_ast_odata_helper(data)
+                        
             if not ret_value:
                 print("Keine Termine gefunden.")
                 return False, "None"
@@ -367,6 +385,8 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
     graphics.set_pen(1)
     
     day_light_houre = ret_time[4] + DAY_LIGHT_SAVING
+    if day_light_houre == 24:
+        day_light_houre = 0
     
     if day_light_houre < 10:
         day_light_houre = f"0{day_light_houre}"
@@ -380,18 +400,23 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
 
 
     graphics.set_pen(3)
-    graphics.rectangle(30, HEIGHT - (300 + y_offset), WIDTH - 250, 200)
+    graphics.rectangle(30, HEIGHT - (300 + y_offset), WIDTH - 60, 200)
+    #graphics.rectangle(30, HEIGHT - (300 + y_offset), WIDTH - 250, 200)
     graphics.set_pen(1)
     graphics.text("Aktuelles Meeting:", 35, HEIGHT - (280 + y_offset), 600, 0.75)
     if current_meeting_fill == None:
-        graphics.text("Kein Meeting", 35, HEIGHT - (230 + y_offset), 600, 2.5)  
+        graphics.text("Kein Meeting", 35, HEIGHT - (230 + y_offset), 600, 1)  
     else:
-        graphics.text(current_meeting_fill["subject"], 35, HEIGHT - (230 + y_offset), 600, 2.5)
+        graphics.text(current_meeting_fill["subject"], 35, HEIGHT - (230 + y_offset), 600, 1)
         
         daylight_saving_hour = int(current_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
+        if daylight_saving_hour == 24:
+            daylight_saving_hour = 00
         daylight_saving_minutes = current_meeting_fill["start_zeit"][14:][:-3]
         
         daylight_saving_hour_end = int(current_meeting_fill["end_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
+        if daylight_saving_hour_end == 24:
+            daylight_saving_hour_end = 00
         daylight_saving_minutes_end = current_meeting_fill["end_zeit"][14:][:-3]
                 
         time_range_string = f' {daylight_saving_hour}:{daylight_saving_minutes} - {daylight_saving_hour_end}:{daylight_saving_minutes_end}'
@@ -399,16 +424,20 @@ def draw_frame(ret_time, current_meeting_fill, next_meeting_fill):
 
 
     graphics.set_pen(0)
-    graphics.rectangle(30, HEIGHT - (100 + y_offset), WIDTH - 300, 50)
+    graphics.rectangle(30, HEIGHT - (100 + y_offset), WIDTH - 100, 50)
     graphics.set_pen(1)
     if next_meeting_fill == None:
         folgende_string = ""
         graphics.text(folgende_string, 35, HEIGHT - (75 + y_offset), 600, 0.5)        
     else:
         daylight_saving_hour = int(next_meeting_fill["start_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
+        if daylight_saving_hour == 24:
+            daylight_saving_hour = 00
         daylight_saving_minutes = next_meeting_fill["start_zeit"][14:][:-3]
         
         daylight_saving_hour_end = int(next_meeting_fill["end_zeit"][11:][:-6]) + DAY_LIGHT_SAVING
+        if daylight_saving_hour_end == 24:
+            daylight_saving_hour_end = 00
         daylight_saving_minutes_end = next_meeting_fill["end_zeit"][14:][:-3]
                 
         folgende_string = f'Folgendes: {next_meeting_fill["subject"]} --- {daylight_saving_hour}:{daylight_saving_minutes} - {daylight_saving_hour_end}:{daylight_saving_minutes_end}'

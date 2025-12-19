@@ -64,7 +64,7 @@ while True:
     if ret_time_bool == True:
         token_data = ih.app.get_access_token()
         
-        ret_value_group, events = ih.app.get_group_events(token_data['access_token'])
+        ret_value_group, events = ih.app.get_group_events(token_data['access_token'], ret_time)
         gc.collect()
         if ret_value_group != False:
             sleep_mode, current_meeting, next_meeting = ih.app.sort_and_filter_events(events, ret_time)
@@ -74,6 +74,7 @@ while True:
     else:
         ih.app.draw_frame_error()
 
+    gc.collect()
     ih.led_warn.off()
     ih.sleep(ih.app.UPDATE_INTERVAL)
 

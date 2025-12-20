@@ -203,12 +203,14 @@ def string_ast_odata_helper(string_data):
     
     # i dont can't load ast to simple parse my string
     # level1 is in my object context as @odata.context , [list of events] , "@odata.nextLink"
-    return_data_test = {"@odata.context": "" , "value": "" , "@odata.nextLink": ""}
+    return_data_test = {"@odata.context": "" , "value": [] , "@odata.nextLink": ""}
     return_data = {"@odata.context": "" , "value": "" , "@odata.nextLink": ""}
     next_link_tmp = ""
 
     value_tmp = ""
     calenda_data = []
+    count_off_entry = 0
+    nextLink_pos = -1
      
     base_struct = string_data.split(",")
                 
@@ -220,6 +222,7 @@ def string_ast_odata_helper(string_data):
         _, next_link_tmp = string_data.split('"@odata.nextLink":')
         return_data["@odata.nextLink"] = next_link_tmp[:-3]
     
+
     _ , value_tmp = string_data.split('"value":')
     
     if nextLink_pos != -1:
@@ -227,32 +230,40 @@ def string_ast_odata_helper(string_data):
         value_tmp = value_tmp[:-2]
     
     # value_tmp3 hold the @odata.etag dicts
-    string_to_strip = value_tmp.strip("\r")
+    value_tmp = value_tmp.strip("\r")
     
     count_off_entry = len(value_tmp.split('"@odata.etag":'))
+    print("count_off_entry: ", count_off_entry)
     
     value_tmp = value_tmp.split(',{"@odata.etag":')
     
-    # Cleanup from odata crap that send by the database
+    # Cleanup from odata crap that send by the database   
+    if value_tmp[0] != '[]}':
         
-    for item_stripes in value_tmp:
-        entry = {}
-        _, start_zeit = item_stripes.split('"start":{"dateTime":"')
-        _, end_zeit = item_stripes.split('"end":{"dateTime":"')
-        _, subject = item_stripes.split('"subject":"')
-        subject, _ = subject.split('","bodyPreview":"')      
-        
-        entry["subject"] = symbol_sanizer(str(subject))      
-        entry["start_zeit"] = start_zeit[:19]
-        entry["end_zeit"] = end_zeit[:19]
-        entry["start_epoch"] = epoch_from_iso8601short(start_zeit[:19])
-        entry["end_epoch"] = epoch_from_iso8601short(end_zeit[:19])
+        for item_stripes in value_tmp:
+            entry = {}
+            print("Loop")
+            _, start_zeit = item_stripes.split('"start":{"dateTime":"')
+            print("Loop2")
 
-        if len(entry["start_zeit"]) == 19 and len(entry["end_zeit"]) == 19 and type(entry["subject"]) == str :
-            calenda_data.append(entry)
-        else:
-            print("Entry Validation Faild")
-            return False , return_data_test
+            _, end_zeit = item_stripes.split('"end":{"dateTime":"')
+            _, subject = item_stripes.split('"subject":"')
+            subject, _ = subject.split('","bodyPreview":"')      
+            
+            entry["subject"] = symbol_sanizer(str(subject))      
+            entry["start_zeit"] = start_zeit[:19]
+            entry["end_zeit"] = end_zeit[:19]
+            entry["start_epoch"] = epoch_from_iso8601short(start_zeit[:19])
+            entry["end_epoch"] = epoch_from_iso8601short(end_zeit[:19])
+
+            if len(entry["start_zeit"]) == 19 and len(entry["end_zeit"]) == 19 and type(entry["subject"]) == str :
+                calenda_data.append(entry)
+            else:
+                print("Entry Validation Faild")
+                return False , return_data_test
+    else:
+        print("Entry Validation Faild - Nothing to Parse")
+        return True , return_data_test
      
     return_data["value"] = calenda_data           
     gc.collect()
@@ -282,6 +293,10 @@ def get_group_events(access_token, time_frame ):
         "charset": "UTF-8"
     }
     data_dump = ""
+    
+    ret_value = False
+    events = []
+    
     try:
         print("Rufe Gruppenkalender ab...")
         meta, data = http_get_buffered(url, headers , buffer_size=512)
@@ -291,8 +306,11 @@ def get_group_events(access_token, time_frame ):
 
         if meta[0] == 'HTTP/1.1 200 OK':
             print("Response received ({} bytes)".format(len(data)))
-                                    
-            ret_value , events = string_ast_odata_helper(data)
+                             
+            try:
+                ret_value , events = string_ast_odata_helper(data)
+            except Exception as e:
+                 print("ODATA RETURN:", e)
                         
             if not ret_value:
                 print("Keine Termine gefunden.")
@@ -481,16 +499,13 @@ def draw_frame_error():
       
     
 def time_update():
-    # grab the current time from the ntp server and update the Pico RTC
-    ret =  False
-    
+    # grab the current time from the ntp server and update the Pico RTC   
     try:
         ntptime.settime()
-        ret = True
     except OSError:
         print("Unable to contact NTP server")
 
     current_t = rtc.datetime()
 
-    return ret , current_t
+    return True , current_t
     

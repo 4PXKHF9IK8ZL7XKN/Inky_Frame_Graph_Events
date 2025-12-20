@@ -60,19 +60,23 @@ while True:
     global token_data
     ih.led_warn.on()
     
-    ret_time_bool, ret_time = ih.app.time_update()
-    if ret_time_bool == True:
-        token_data = ih.app.get_access_token()
-        
-        ret_value_group, events = ih.app.get_group_events(token_data['access_token'], ret_time)
+    _, ret_time = ih.app.time_update()
+    
+    print("Update:", ret_time)
+    token_data = ih.app.get_access_token()
+                
+    if token_data != None:
+        ret_value_group, events = ih.app.get_group_events(token_data['access_token'], ret_time)        
         gc.collect()
         if ret_value_group != False:
             sleep_mode, current_meeting, next_meeting = ih.app.sort_and_filter_events(events, ret_time)
+            print("sleep_mode: ", sleep_mode_toggle)
             if sleep_mode_toggle == False:
                 ih.app.draw_frame(ret_time,current_meeting,next_meeting)
             sleep_mode_toggle = sleep_mode
     else:
         ih.app.draw_frame_error()
+        sleep_mode_toggle = False
 
     gc.collect()
     ih.led_warn.off()

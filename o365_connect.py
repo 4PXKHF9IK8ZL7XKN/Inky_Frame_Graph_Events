@@ -221,8 +221,7 @@ def string_ast_odata_helper(string_data):
     if nextLink_pos != -1:
         _, next_link_tmp = string_data.split('"@odata.nextLink":')
         return_data["@odata.nextLink"] = next_link_tmp[:-3]
-    
-
+ 
     _ , value_tmp = string_data.split('"value":')
     
     if nextLink_pos != -1:
@@ -242,25 +241,24 @@ def string_ast_odata_helper(string_data):
         
         for item_stripes in value_tmp:
             entry = {}
-            print("Loop")
-            _, start_zeit = item_stripes.split('"start":{"dateTime":"')
-            print("Loop2")
+            item_start_pos = item_stripes.find('"start":{"dateTime":"')
+            if item_start_pos != -1:
+                _, start_zeit = item_stripes.split('"start":{"dateTime":"')
+                _, end_zeit = item_stripes.split('"end":{"dateTime":"')
+                _, subject = item_stripes.split('"subject":"')
+                subject, _ = subject.split('","bodyPreview":"')      
+                
+                entry["subject"] = symbol_sanizer(str(subject))      
+                entry["start_zeit"] = start_zeit[:19]
+                entry["end_zeit"] = end_zeit[:19]
+                entry["start_epoch"] = epoch_from_iso8601short(start_zeit[:19])
+                entry["end_epoch"] = epoch_from_iso8601short(end_zeit[:19])
 
-            _, end_zeit = item_stripes.split('"end":{"dateTime":"')
-            _, subject = item_stripes.split('"subject":"')
-            subject, _ = subject.split('","bodyPreview":"')      
-            
-            entry["subject"] = symbol_sanizer(str(subject))      
-            entry["start_zeit"] = start_zeit[:19]
-            entry["end_zeit"] = end_zeit[:19]
-            entry["start_epoch"] = epoch_from_iso8601short(start_zeit[:19])
-            entry["end_epoch"] = epoch_from_iso8601short(end_zeit[:19])
-
-            if len(entry["start_zeit"]) == 19 and len(entry["end_zeit"]) == 19 and type(entry["subject"]) == str :
-                calenda_data.append(entry)
-            else:
-                print("Entry Validation Faild")
-                return False , return_data_test
+                if len(entry["start_zeit"]) == 19 and len(entry["end_zeit"]) == 19 and type(entry["subject"]) == str :
+                    calenda_data.append(entry)
+                else:
+                    print("Entry Validation Faild")
+                    return False , return_data_test
     else:
         print("Entry Validation Faild - Nothing to Parse")
         return True , return_data_test
